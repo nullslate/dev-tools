@@ -1,5 +1,6 @@
 import type { CSSProperties, JSX, ReactNode, RefObject } from 'react';
 import { useDevToolbarContext } from './DevToolbarContext';
+import { DevToolIcon } from './icons';
 
 export interface DevToolDropdownProps {
   anchorRef: RefObject<HTMLElement | null>;
@@ -22,7 +23,7 @@ export const DevToolDropdown = ({
     overflow: 'hidden',
     borderRadius: 8,
     border: `1px solid ${theme.border}`,
-    background: theme.bg,
+    background: `linear-gradient(180deg, ${theme.bg2}, ${theme.bg})`,
     color: theme.text,
     boxShadow: theme.shadow,
     top: rect ? rect.bottom + 8 : 48,
@@ -40,13 +41,14 @@ export const DevToolDropdown = ({
           cursor: 'pointer',
           border: 0,
           background: 'transparent',
-          fontSize: 12,
+          padding: 4,
           color: theme.muted,
         }}
         onClick={onClose}
         aria-label="Close dev tool dropdown"
+        title="Close dev tool dropdown"
       >
-        Close
+        <DevToolIcon name="close" size={14} />
       </button>
       <div style={{ paddingTop: 28 }}>{children}</div>
     </div>

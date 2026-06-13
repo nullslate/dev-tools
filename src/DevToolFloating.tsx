@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useDevToolbarContext } from './DevToolbarContext';
+import { DevToolIcon } from './icons';
 
 export interface DevToolFloatingProps {
   title: string;
@@ -184,7 +185,7 @@ export const DevToolFloating = ({
     overflow: 'hidden',
     borderRadius: 12,
     border: `1px solid ${theme.border}`,
-    background: theme.bg,
+    background: `linear-gradient(180deg, ${theme.bg2}, ${theme.bg})`,
     color: theme.text,
     boxShadow: theme.shadow,
     width: panelState.width,
@@ -241,15 +242,15 @@ export const DevToolFloating = ({
               borderRadius: 4,
               border: 0,
               background: 'transparent',
-              padding: '2px 6px',
-              fontSize: 12,
+              padding: 4,
               color: theme.muted,
             }}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={onClose}
             aria-label={`Close ${title}`}
+            title={`Close ${title}`}
           >
-            Close
+            <DevToolIcon name="close" size={14} />
           </button>
         </header>
         <div style={{ minHeight: 0, overflow: 'auto' }}>{children}</div>

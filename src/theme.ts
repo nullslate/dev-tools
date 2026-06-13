@@ -16,18 +16,18 @@ export interface DevToolbarTheme {
 export type DevToolbarThemeInput = Partial<DevToolbarTheme>;
 
 export const defaultDevToolbarTheme: DevToolbarTheme = {
-  bg: '#020617',
-  bg2: '#0f172a',
-  bg3: '#1e293b',
-  border: '#334155',
-  text: '#f8fafc',
-  muted: '#94a3b8',
-  dim: '#64748b',
-  blue: '#93c5fd',
-  green: '#34d399',
-  amber: '#fbbf24',
-  red: '#f87171',
-  shadow: '0 25px 50px -12px rgba(0,0,0,0.55)',
+  bg: '#080b12',
+  bg2: '#101623',
+  bg3: '#1b2535',
+  border: '#263348',
+  text: '#f5f8ff',
+  muted: '#9aa8bd',
+  dim: '#65758f',
+  blue: '#67e8f9',
+  green: '#5eead4',
+  amber: '#facc15',
+  red: '#fb7185',
+  shadow: '0 24px 70px rgba(0,0,0,0.48), 0 0 0 1px rgba(103,232,249,0.06)',
 };
 
 export function resolveDevToolbarTheme(theme?: DevToolbarThemeInput): DevToolbarTheme {

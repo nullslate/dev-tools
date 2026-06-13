@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { DevToolFloating } from '../DevToolFloating';
 import { useDevToolbarContext } from '../DevToolbarContext';
+import { DevToolIcon } from '../icons';
 import { useDevTool } from '../useDevTool';
 import {
   clearNetworkEntries,
@@ -38,6 +39,9 @@ const colors = {
 };
 
 const buttonStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
   cursor: 'pointer',
   border: 0,
   borderRadius: 4,
@@ -135,6 +139,7 @@ const CopyButton = ({ value, label }: { value: string; label: string }): JSX.Ele
       copyText(value);
     }}
   >
+    <DevToolIcon name="copy" size={12} />
     {label}
   </button>
 );
@@ -324,10 +329,22 @@ const NetworkPanel = (): JSX.Element => {
             {failedCount > 0 && <span style={{ marginLeft: 4, color: colors.red }}>· {failedCount} failed</span>}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => copyText(curlExport)}>Copy cURL</button>
-            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => downloadText('nullslate-network.curl', 'text/plain', curlExport)}>cURL</button>
-            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => downloadText('nullslate-network.har', 'application/json', harExport)}>HAR</button>
-            <button type="button" style={buttonStyle} onClick={clearNetworkEntries}>Clear</button>
+            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => copyText(curlExport)}>
+              <DevToolIcon name="copy" size={12} />
+              Copy cURL
+            </button>
+            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => downloadText('nullslate-network.curl', 'text/plain', curlExport)}>
+              <DevToolIcon name="download" size={12} />
+              cURL
+            </button>
+            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => downloadText('nullslate-network.har', 'application/json', harExport)}>
+              <DevToolIcon name="download" size={12} />
+              HAR
+            </button>
+            <button type="button" style={buttonStyle} onClick={clearNetworkEntries}>
+              <DevToolIcon name="trash" size={12} />
+              Clear
+            </button>
           </span>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4 }}>
@@ -427,7 +444,7 @@ export const NetworkTool = memo((): null => {
 
   useDevTool({
     id: 'network',
-    icon: 'NW',
+    icon: <DevToolIcon name="network" />,
     label: 'Network',
     scope: 'global',
     panelType: 'floating',

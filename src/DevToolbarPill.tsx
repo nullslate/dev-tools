@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useDevToolbarContext } from './DevToolbarContext';
 import { DevToolDropdown } from './DevToolDropdown';
+import { DevToolIcon } from './icons';
 import type { DevToolbarTheme } from './theme';
 import type { DevToolRegistration } from './types';
 
@@ -39,7 +40,7 @@ function sortTools(tools: DevToolRegistration[]): DevToolRegistration[] {
 }
 
 function fallbackIcon(label: string): ReactNode {
-  return <span style={{ fontSize: 10, fontWeight: 700 }}>{label.slice(0, 2).toUpperCase()}</span>;
+  return <DevToolIcon name="spark" />;
 }
 
 function toolButtonStyle(tool: DevToolRegistration, isActive: boolean, theme: DevToolbarTheme): CSSProperties {
@@ -59,8 +60,8 @@ function toolButtonStyle(tool: DevToolRegistration, isActive: boolean, theme: De
   };
 
   if (tool.style) return { ...base, ...tool.style };
-  if (tool.alert) return { ...base, background: 'rgba(248,113,113,0.16)', color: theme.red };
-  if (isActive) return { ...base, background: 'rgba(96,165,250,0.16)', color: theme.blue };
+  if (tool.alert) return { ...base, background: 'rgba(251,113,133,0.14)', color: theme.red };
+  if (isActive) return { ...base, background: 'rgba(103,232,249,0.14)', color: theme.blue };
   return { ...base, color: theme.muted };
 }
 
@@ -125,15 +126,15 @@ const DevToolbarPill = memo((): JSX.Element | null => {
           justifyContent: 'center',
           borderRadius: 999,
           border: `1px solid ${theme.border}`,
-          background: theme.bg,
-          color: theme.muted,
-          boxShadow: '0 10px 24px rgba(0,0,0,0.35)',
+          background: `linear-gradient(180deg, ${theme.bg2}, ${theme.bg})`,
+          color: theme.blue,
+          boxShadow: theme.shadow,
           backdropFilter: 'blur(12px)',
         }}
         onClick={handleExpand}
         aria-label="Expand dev toolbar"
       >
-        DT
+        <DevToolIcon name="panel" />
       </button>
     );
   }
@@ -191,9 +192,9 @@ const DevToolbarPill = memo((): JSX.Element | null => {
           gap: 4,
           borderRadius: 999,
           border: `1px solid ${theme.border}`,
-          background: theme.bg,
-          padding: '0 4px',
-          boxShadow: '0 10px 24px rgba(0,0,0,0.35)',
+          background: `linear-gradient(180deg, ${theme.bg2}, ${theme.bg})`,
+          padding: '0 5px',
+          boxShadow: theme.shadow,
           backdropFilter: 'blur(12px)',
         }}
       >
@@ -220,10 +221,11 @@ const DevToolbarPill = memo((): JSX.Element | null => {
             color: theme.dim,
             padding: 0,
           }}
-          onClick={handleCollapse}
           aria-label="Collapse dev toolbar"
+          title="Collapse dev toolbar"
+          onClick={handleCollapse}
         >
-          -
+          <DevToolIcon name="chevron-down" />
         </button>
       </div>
 

@@ -1,4 +1,5 @@
 import { memo, useMemo, type JSX } from 'react';
+import { DevToolIcon } from '../icons';
 import { useDevTool } from '../useDevTool';
 import type { DevToolRegistration } from '../types';
 
@@ -9,8 +10,8 @@ export interface ToggleToolProps {
   onChange: (next: boolean) => void;
   order?: number;
   scope?: DevToolRegistration['scope'];
-  iconOn?: string;
-  iconOff?: string;
+  iconOn?: DevToolRegistration['icon'];
+  iconOff?: DevToolRegistration['icon'];
 }
 
 export const ToggleTool = memo(({
@@ -20,8 +21,8 @@ export const ToggleTool = memo(({
   onChange,
   order = 50,
   scope = 'global',
-  iconOn = 'ON',
-  iconOff = 'OFF',
+  iconOn = <DevToolIcon name="toggle-on" />,
+  iconOff = <DevToolIcon name="toggle-off" />,
 }: ToggleToolProps): null => {
   useDevTool(useMemo(() => ({
     id,

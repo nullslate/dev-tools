@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { DevToolFloating } from '../DevToolFloating';
 import { useDevToolbarContext } from '../DevToolbarContext';
+import { DevToolIcon } from '../icons';
 import { useDevTool } from '../useDevTool';
 import type { DevToolRegistration } from '../types';
 
@@ -41,19 +42,23 @@ export interface TreeToolProps<TInput, TData = unknown> {
 }
 
 const colors = {
-  bg: '#020617',
-  bg2: '#0f172a',
-  bg3: '#1e293b',
-  border: '#334155',
-  text: '#f8fafc',
-  muted: '#94a3b8',
-  dim: '#64748b',
-  blue: '#93c5fd',
-  green: '#34d399',
-  amber: '#fbbf24',
+  bg: 'var(--ndt-bg, #020617)',
+  bg2: 'var(--ndt-bg2, #0f172a)',
+  bg3: 'var(--ndt-bg3, #1e293b)',
+  border: 'var(--ndt-border, #334155)',
+  text: 'var(--ndt-text, #f8fafc)',
+  muted: 'var(--ndt-muted, #94a3b8)',
+  dim: 'var(--ndt-dim, #64748b)',
+  blue: 'var(--ndt-blue, #93c5fd)',
+  green: 'var(--ndt-green, #34d399)',
+  amber: 'var(--ndt-amber, #fbbf24)',
 };
 
 const iconButtonStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 4,
   cursor: 'pointer',
   border: 0,
   borderRadius: 4,
@@ -142,7 +147,7 @@ const TreeNodeRow = <TData, >({
               onClick={() => onToggleExpand(node.id)}
               aria-label={isExpanded ? `Collapse ${node.label}` : `Expand ${node.label}`}
             >
-              {isExpanded ? '-' : '+'}
+              <DevToolIcon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={14} />
             </button>
           ) : (
             <span style={{ width: 22, color: colors.dim, textAlign: 'center' }}>·</span>
@@ -194,7 +199,7 @@ const TreeToolComponent = <TInput, TData = unknown>({
   label,
   input,
   adapter,
-  icon = 'TR',
+  icon = <DevToolIcon name="tree" />,
   order = 60,
   scope = 'global',
   width = 520,
@@ -234,7 +239,7 @@ const TreeToolComponent = <TInput, TData = unknown>({
     order,
     alert: false,
     panel: (
-      <DevToolFloating title={label} onClose={() => closePanel(id)} width={width}>
+      <DevToolFloating id={id} title={label} onClose={() => closePanel(id)} width={width}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: `1px solid ${colors.border}`, padding: 8 }}>
           <input
             type="text"
@@ -243,8 +248,14 @@ const TreeToolComponent = <TInput, TData = unknown>({
             onChange={(event) => setSearch(event.target.value)}
             style={{ flex: 1, minWidth: 0, height: 28, border: `1px solid ${colors.border}`, borderRadius: 6, background: colors.bg2, color: colors.text, padding: '0 8px', outline: 'none' }}
           />
-          <button type="button" style={iconButtonStyle} onClick={expandAll}>Expand</button>
-          <button type="button" style={iconButtonStyle} onClick={collapseAll}>Collapse</button>
+          <button type="button" style={iconButtonStyle} onClick={expandAll}>
+            <DevToolIcon name="chevron-down" size={12} />
+            Expand
+          </button>
+          <button type="button" style={iconButtonStyle} onClick={collapseAll}>
+            <DevToolIcon name="chevron-right" size={12} />
+            Collapse
+          </button>
         </div>
         <div style={{ borderBottom: `1px solid ${colors.border}`, padding: '5px 10px', color: colors.dim, fontSize: 10 }}>
           {visibleCount} of {totalCount} node{totalCount === 1 ? '' : 's'}

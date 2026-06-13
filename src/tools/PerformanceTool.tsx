@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { useDevToolbarContext } from '../DevToolbarContext';
 import { DevToolFloating } from '../DevToolFloating';
+import { DevToolIcon } from '../icons';
 import { useDevTool } from '../useDevTool';
 import {
   PERFORMANCE_THRESHOLDS,
@@ -79,6 +80,9 @@ function durationColor(duration: number): string {
 }
 
 const buttonStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
   cursor: 'pointer',
   border: 0,
   borderRadius: 4,
@@ -127,7 +131,7 @@ export const PerformanceTool = memo((): null => {
 
   useDevTool({
     id: 'performance',
-    icon: 'PF',
+    icon: <DevToolIcon name="gauge" />,
     label: activeProfilers > 0 ? 'Performance (profiling)' : 'Performance',
     scope: 'global',
     panelType: 'floating',
@@ -143,7 +147,10 @@ export const PerformanceTool = memo((): null => {
               {slowCount} slow{slowOnly ? ' x' : ''}
             </button>
           )}
-          <button type="button" style={{ ...buttonStyle, marginLeft: 'auto' }} onClick={clearPerformanceEntries}>Clear</button>
+          <button type="button" style={{ ...buttonStyle, marginLeft: 'auto' }} onClick={clearPerformanceEntries}>
+            <DevToolIcon name="trash" size={12} />
+            Clear
+          </button>
         </div>
         <div style={{ borderBottom: `1px solid ${colors.border}`, padding: 8 }}>
           <input

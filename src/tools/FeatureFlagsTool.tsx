@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { DevToolFloating } from '../DevToolFloating';
 import { useDevToolbarContext } from '../DevToolbarContext';
+import { DevToolIcon } from '../icons';
 import { useDevTool } from '../useDevTool';
 
 export type FeatureFlagValue = boolean | string | number | null | undefined;
@@ -32,6 +33,9 @@ const colors = {
 };
 
 const buttonStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
   cursor: 'pointer',
   border: 0,
   borderRadius: 4,
@@ -63,7 +67,7 @@ export const FeatureFlagsTool = memo(({
 
   useDevTool({
     id: 'feature-flags',
-    icon: 'FF',
+    icon: <DevToolIcon name="flag" />,
     label: `Feature Flags${changedCount ? ` (${changedCount})` : ''}`,
     scope: 'global',
     panelType: 'floating',

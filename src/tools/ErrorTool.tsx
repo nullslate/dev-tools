@@ -1,6 +1,7 @@
 import { Fragment, memo, useState, type JSX } from 'react';
 import { DevToolFloating } from '../DevToolFloating';
 import { useDevToolbarContext } from '../DevToolbarContext';
+import { DevToolIcon } from '../icons';
 import { useDevTool } from '../useDevTool';
 import {
   clearCapturedErrors,
@@ -45,7 +46,7 @@ export const ErrorTool = memo((): null => {
 
   useDevTool({
     id: 'errors',
-    icon: 'ER',
+    icon: <DevToolIcon name="error" />,
     label: `Errors${errors.length ? ` (${errors.length})` : ''}`,
     scope: 'global',
     panelType: 'floating',
@@ -56,7 +57,10 @@ export const ErrorTool = memo((): null => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${colors.border}`, padding: '6px 10px', color: colors.muted, fontSize: 11 }}>
           <span>{errors.length} captured error{errors.length === 1 ? '' : 's'}</span>
           {errors.length > 0 && (
-            <button type="button" style={{ cursor: 'pointer', border: 0, background: 'transparent', color: colors.blue, fontSize: 11 }} onClick={clearCapturedErrors}>Clear</button>
+            <button type="button" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', border: 0, background: 'transparent', color: colors.blue, fontSize: 11 }} onClick={clearCapturedErrors}>
+              <DevToolIcon name="trash" size={12} />
+              Clear
+            </button>
           )}
         </div>
         <div style={{ maxHeight: 460, overflowY: 'auto' }}>
