@@ -7,6 +7,9 @@ export function useDevTool(registration: DevToolRegistration): void {
 
   useEffect(() => {
     registerTool(registration);
-    return () => unregisterTool(registration.id);
-  }, [registration, registerTool, unregisterTool]);
+  }, [registration, registerTool]);
+
+  useEffect(() => (
+    () => unregisterTool(registration.id)
+  ), [registration.id, unregisterTool]);
 }
