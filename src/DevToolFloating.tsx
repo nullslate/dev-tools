@@ -152,32 +152,7 @@ export const DevToolFloating = ({
     document.body.style.userSelect = drag.previousBodyUserSelect;
   }, []);
 
-  const startDrag = useCallback((event: ReactPointerEvent<HTMLElement>, mode: DragState['mode']): void => {
-    if (event.button !== 0) return;
-    const panel = panelRef.current;
-    event.currentTarget.setPointerCapture(event.pointerId);
-    bringToFront();
-    const previousBodyCursor = typeof document === 'undefined' ? '' : document.body.style.cursor;
-    const previousBodyUserSelect = typeof document === 'undefined' ? '' : document.body.style.userSelect;
-    if (typeof document !== 'undefined') {
-      document.body.style.cursor = mode === 'move' ? 'grabbing' : 'nwse-resize';
-      document.body.style.userSelect = 'none';
-    }
-    dragRef.current = {
-      mode,
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      initial: panelState,
-      initialHeight: panelState.height ?? panel?.getBoundingClientRect().height ?? minHeight,
-      next: panelState,
-      previousBodyCursor,
-      previousBodyUserSelect,
-    };
-    event.preventDefault();
-  }, [bringToFront, minHeight, panelState]);
-
-  const handlePointerMove = useCallback((event: ReactPointerEvent<HTMLElement>): void => {
+  function handlePointerMove(event: PointerEvent): void {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
 
@@ -206,9 +181,9 @@ export const DevToolFloating = ({
       if (!panel || !currentDrag) return;
       applyDragFrame(panel, currentDrag);
     });
-  }, [minHeight, minWidth]);
+  }
 
-  const endDrag = useCallback((event: ReactPointerEvent<HTMLElement>): void => {
+  function endDrag(event: PointerEvent): void {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const panel = panelRef.current;
@@ -228,13 +203,50 @@ export const DevToolFloating = ({
     }
     clearDragSideEffects(drag);
     dragRef.current = null;
+    window.removeEventListener('pointermove', handlePointerMove);
+    window.removeEventListener('pointerup', endDrag);
+    window.removeEventListener('pointercancel', endDrag);
     commitPanelState(drag.next);
-  }, [clearDragSideEffects, commitPanelState]);
+  }
+
+  const startDrag = useCallback((event: ReactPointerEvent<HTMLElement>, mode: DragState['mode']): void => {
+    if (event.button !== 0) return;
+    const panel = panelRef.current;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    bringToFront();
+    const previousBodyCursor = typeof document === 'undefined' ? '' : document.body.style.cursor;
+    const previousBodyUserSelect = typeof document === 'undefined' ? '' : document.body.style.userSelect;
+    if (typeof document !== 'undefined') {
+      document.body.style.cursor = mode === 'move' ? 'grabbing' : 'nwse-resize';
+      document.body.style.userSelect = 'none';
+    }
+    dragRef.current = {
+      mode,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      initial: panelState,
+      initialHeight: panelState.height ?? panel?.getBoundingClientRect().height ?? minHeight,
+      next: panelState,
+      previousBodyCursor,
+      previousBodyUserSelect,
+    };
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+    event.stopPropagation();
+    event.preventDefault();
+  }, [bringToFront, minHeight, panelState]);
 
   useEffect(() => () => {
     if (frameRef.current != null) cancelAnimationFrame(frameRef.current);
     const drag = dragRef.current;
-    if (drag) clearDragSideEffects(drag);
+    if (drag) {
+      clearDragSideEffects(drag);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', endDrag);
+      window.removeEventListener('pointercancel', endDrag);
+    }
   }, [clearDragSideEffects]);
 
   const shellStyle = useMemo<CSSProperties>(() => ({
@@ -272,9 +284,6 @@ export const DevToolFloating = ({
       ref={panelRef}
       style={shellStyle}
       onPointerDown={bringToFront}
-      onPointerMove={handlePointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
     >
       <div style={{ display: 'flex', minHeight: 0, width: '100%', flexDirection: 'column' }}>
         <header
