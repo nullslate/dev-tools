@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -36,6 +37,10 @@ interface DragState {
   startX: number;
   startY: number;
   initial: FloatingPanelState;
+  initialHeight: number;
+  next: FloatingPanelState;
+  previousBodyCursor: string;
+  previousBodyUserSelect: string;
 }
 
 type ThemeCssProperties = CSSProperties & Record<`--ndt-${string}`, string>;
@@ -83,6 +88,16 @@ function writePanelState(id: string | undefined, state: FloatingPanelState): voi
   }
 }
 
+function applyDragFrame(panel: HTMLElement, drag: DragState): void {
+  if (drag.mode === 'move') {
+    panel.style.transform = `translate3d(${drag.next.x - drag.initial.x}px, ${drag.next.y - drag.initial.y}px, 0)`;
+    return;
+  }
+
+  panel.style.width = `${drag.next.width}px`;
+  if (drag.next.height != null) panel.style.height = `${drag.next.height}px`;
+}
+
 export const DevToolFloating = ({
   id,
   title,
@@ -96,6 +111,7 @@ export const DevToolFloating = ({
   const { theme } = useDevToolbarContext();
   const panelRef = useRef<HTMLElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
+  const frameRef = useRef<number | null>(null);
   const panelStateRef = useRef<FloatingPanelState | null>(null);
   const [panelState, setPanelState] = useState<FloatingPanelState>(() => {
     const stored = readPanelState(id);
@@ -130,19 +146,36 @@ export const DevToolFloating = ({
     writePanelState(id, next);
   }, [id, updatePanelState]);
 
+  const clearDragSideEffects = useCallback((drag: DragState): void => {
+    if (typeof document === 'undefined') return;
+    document.body.style.cursor = drag.previousBodyCursor;
+    document.body.style.userSelect = drag.previousBodyUserSelect;
+  }, []);
+
   const startDrag = useCallback((event: ReactPointerEvent<HTMLElement>, mode: DragState['mode']): void => {
     if (event.button !== 0) return;
+    const panel = panelRef.current;
     event.currentTarget.setPointerCapture(event.pointerId);
     bringToFront();
+    const previousBodyCursor = typeof document === 'undefined' ? '' : document.body.style.cursor;
+    const previousBodyUserSelect = typeof document === 'undefined' ? '' : document.body.style.userSelect;
+    if (typeof document !== 'undefined') {
+      document.body.style.cursor = mode === 'move' ? 'grabbing' : 'nwse-resize';
+      document.body.style.userSelect = 'none';
+    }
     dragRef.current = {
       mode,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
       initial: panelState,
+      initialHeight: panelState.height ?? panel?.getBoundingClientRect().height ?? minHeight,
+      next: panelState,
+      previousBodyCursor,
+      previousBodyUserSelect,
     };
     event.preventDefault();
-  }, [bringToFront, panelState]);
+  }, [bringToFront, minHeight, panelState]);
 
   const handlePointerMove = useCallback((event: ReactPointerEvent<HTMLElement>): void => {
     const drag = dragRef.current;
@@ -153,28 +186,56 @@ export const DevToolFloating = ({
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
 
-    updatePanelState((current) => {
-      const next = drag.mode === 'move'
-        ? {
-          ...current,
-          x: clamp(drag.initial.x + dx, 8, Math.max(8, viewportWidth - 80)),
-          y: clamp(drag.initial.y + dy, 8, Math.max(8, viewportHeight - 48)),
-        }
-        : {
-          ...current,
-          width: clamp(drag.initial.width + dx, minWidth, Math.max(minWidth, viewportWidth - drag.initial.x - 8)),
-          height: clamp((drag.initial.height ?? panelRef.current?.getBoundingClientRect().height ?? minHeight) + dy, minHeight, Math.max(minHeight, viewportHeight - drag.initial.y - 8)),
-        };
-      return next;
+    drag.next = drag.mode === 'move'
+      ? {
+        ...drag.initial,
+        x: clamp(drag.initial.x + dx, 8, Math.max(8, viewportWidth - 80)),
+        y: clamp(drag.initial.y + dy, 8, Math.max(8, viewportHeight - 48)),
+      }
+      : {
+        ...drag.initial,
+        width: clamp(drag.initial.width + dx, minWidth, Math.max(minWidth, viewportWidth - drag.initial.x - 8)),
+        height: clamp(drag.initialHeight + dy, minHeight, Math.max(minHeight, viewportHeight - drag.initial.y - 8)),
+      };
+
+    if (frameRef.current != null) return;
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null;
+      const panel = panelRef.current;
+      const currentDrag = dragRef.current;
+      if (!panel || !currentDrag) return;
+      applyDragFrame(panel, currentDrag);
     });
-  }, [minHeight, minWidth, updatePanelState]);
+  }, [minHeight, minWidth]);
 
   const endDrag = useCallback((event: ReactPointerEvent<HTMLElement>): void => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
+    const panel = panelRef.current;
+    if (frameRef.current != null) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+    if (panel) {
+      if (drag.mode === 'move') {
+        panel.style.left = `${drag.next.x}px`;
+        panel.style.top = `${drag.next.y}px`;
+        panel.style.transform = '';
+      } else {
+        panel.style.width = `${drag.next.width}px`;
+        if (drag.next.height != null) panel.style.height = `${drag.next.height}px`;
+      }
+    }
+    clearDragSideEffects(drag);
     dragRef.current = null;
-    commitPanelState(panelStateRef.current ?? panelState);
-  }, [commitPanelState, panelState]);
+    commitPanelState(drag.next);
+  }, [clearDragSideEffects, commitPanelState]);
+
+  useEffect(() => () => {
+    if (frameRef.current != null) cancelAnimationFrame(frameRef.current);
+    const drag = dragRef.current;
+    if (drag) clearDragSideEffects(drag);
+  }, [clearDragSideEffects]);
 
   const shellStyle = useMemo<CSSProperties>(() => ({
     position: 'fixed',
@@ -182,6 +243,7 @@ export const DevToolFloating = ({
     top: panelState.y,
     zIndex: panelState.zIndex,
     display: 'flex',
+    contain: 'layout paint style',
     overflow: 'hidden',
     borderRadius: 12,
     border: `1px solid ${theme.border}`,
@@ -191,6 +253,7 @@ export const DevToolFloating = ({
     width: panelState.width,
     height: panelState.height ?? undefined,
     maxHeight,
+    willChange: 'transform, width, height',
     '--ndt-bg': theme.bg,
     '--ndt-bg2': theme.bg2,
     '--ndt-bg3': theme.bg3,
@@ -221,6 +284,7 @@ export const DevToolFloating = ({
             justifyContent: 'space-between',
             cursor: 'grab',
             userSelect: 'none',
+            touchAction: 'none',
             borderBottom: `1px solid ${theme.bg3}`,
             padding: '8px 12px',
           }}
@@ -264,6 +328,7 @@ export const DevToolFloating = ({
           width: 14,
           height: 14,
           cursor: 'nwse-resize',
+          touchAction: 'none',
           background: `linear-gradient(135deg, transparent 45%, ${theme.border} 46%, ${theme.border} 55%, transparent 56%)`,
         }}
         onPointerDown={(event) => startDrag(event, 'resize')}
