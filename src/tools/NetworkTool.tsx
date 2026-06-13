@@ -6,12 +6,15 @@ import {
   useMemo,
   useState,
   type CSSProperties,
+  type JSX,
 } from 'react';
 import { DevToolFloating } from '../DevToolFloating';
 import { useDevToolbarContext } from '../DevToolbarContext';
 import { useDevTool } from '../useDevTool';
 import {
   clearNetworkEntries,
+  exportNetworkCurl,
+  exportNetworkHar,
   useNetworkEntries,
   type NetworkEntry,
 } from '../network/monitor';
@@ -21,17 +24,17 @@ type NetworkFilter = 'all' | 'failed' | 'slow' | 'mutations' | 'reviews';
 type ContextMenuState = { x: number; y: number; entryId: number } | null;
 
 const colors = {
-  bg: '#020617',
-  bg2: '#0f172a',
-  bg3: '#1e293b',
-  border: '#334155',
-  text: '#f8fafc',
-  muted: '#94a3b8',
-  dim: '#64748b',
-  blue: '#93c5fd',
-  green: '#34d399',
-  amber: '#fbbf24',
-  red: '#f87171',
+  bg: 'var(--ndt-bg, #020617)',
+  bg2: 'var(--ndt-bg2, #0f172a)',
+  bg3: 'var(--ndt-bg3, #1e293b)',
+  border: 'var(--ndt-border, #334155)',
+  text: 'var(--ndt-text, #f8fafc)',
+  muted: 'var(--ndt-muted, #94a3b8)',
+  dim: 'var(--ndt-dim, #64748b)',
+  blue: 'var(--ndt-blue, #93c5fd)',
+  green: 'var(--ndt-green, #34d399)',
+  amber: 'var(--ndt-amber, #fbbf24)',
+  red: 'var(--ndt-red, #f87171)',
 };
 
 const buttonStyle: CSSProperties = {
@@ -94,8 +97,33 @@ function matchesFilter(entry: NetworkEntry, filter: NetworkFilter): boolean {
   }
 }
 
+function matchesSearch(entry: NetworkEntry, search: string): boolean {
+  const term = search.trim().toLowerCase();
+  if (!term) return true;
+
+  return [
+    entry.method,
+    entry.url,
+    entry.fullUrl,
+    String(entry.status ?? ''),
+    entry.error ?? '',
+    entry.requestBody ?? '',
+    entry.responseBody ?? '',
+  ].some((value) => value.toLowerCase().includes(term));
+}
+
 function copyText(value: string): void {
   void navigator.clipboard?.writeText(value);
+}
+
+function downloadText(filename: string, contentType: string, value: string): void {
+  const blob = new Blob([value], { type: contentType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
 
 const CopyButton = ({ value, label }: { value: string; label: string }): JSX.Element => (
@@ -254,13 +282,18 @@ const NetworkPanel = (): JSX.Element => {
   const entries = useNetworkEntries();
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [filter, setFilter] = useState<NetworkFilter>('all');
+  const [search, setSearch] = useState('');
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
 
   const failedCount = useMemo(() => entries.filter(isBadRequest).length, [entries]);
   const slowCount = useMemo(() => entries.filter((entry) => entry.duration > SLOW_THRESHOLD_MS).length, [entries]);
-  const filteredEntries = useMemo(() => entries.filter((entry) => matchesFilter(entry, filter)), [entries, filter]);
+  const filteredEntries = useMemo(() => entries
+    .filter((entry) => matchesFilter(entry, filter))
+    .filter((entry) => matchesSearch(entry, search)), [entries, filter, search]);
   const reversed = useMemo(() => [...filteredEntries].reverse(), [filteredEntries]);
   const contextEntry = contextMenu ? entries.find((entry) => entry.id === contextMenu.entryId) : undefined;
+  const curlExport = useMemo(() => exportNetworkCurl(filteredEntries), [filteredEntries]);
+  const harExport = useMemo(() => exportNetworkHar(filteredEntries), [filteredEntries]);
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
 
@@ -283,14 +316,19 @@ const NetworkPanel = (): JSX.Element => {
   ], [entries.length, failedCount, slowCount]);
 
   return (
-    <DevToolFloating title="Network" onClose={() => closePanel('network')} width={560}>
+    <DevToolFloating id="network" title="Network" onClose={() => closePanel('network')} width={640}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderBottom: `1px solid ${colors.border}`, padding: '4px 8px', fontSize: 11, color: colors.muted }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>
             {entries.length} request{entries.length !== 1 ? 's' : ''}
             {failedCount > 0 && <span style={{ marginLeft: 4, color: colors.red }}>· {failedCount} failed</span>}
           </span>
-          <button type="button" style={buttonStyle} onClick={clearNetworkEntries}>Clear</button>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => copyText(curlExport)}>Copy cURL</button>
+            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => downloadText('nullslate-network.curl', 'text/plain', curlExport)}>cURL</button>
+            <button type="button" style={buttonStyle} disabled={filteredEntries.length === 0} onClick={() => downloadText('nullslate-network.har', 'application/json', harExport)}>HAR</button>
+            <button type="button" style={buttonStyle} onClick={clearNetworkEntries}>Clear</button>
+          </span>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4 }}>
           {filterOptions.map((option) => {
@@ -316,6 +354,13 @@ const NetworkPanel = (): JSX.Element => {
             );
           })}
         </div>
+        <input
+          type="text"
+          placeholder="Search method, URL, status, or payload..."
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          style={{ width: '100%', boxSizing: 'border-box', height: 28, border: `1px solid ${colors.border}`, borderRadius: 6, background: colors.bg2, color: colors.text, padding: '0 8px', outline: 'none' }}
+        />
       </div>
       <div style={{ maxHeight: 420, overflowY: 'auto', padding: 0, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 11 }}>
         {reversed.length === 0 ? (

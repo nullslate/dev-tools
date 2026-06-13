@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import type { DevToolbarTheme } from './theme';
 
 export type PanelType = 'dropdown' | 'floating' | 'inline';
 export type ToolScope = 'global' | 'route';
@@ -20,6 +21,7 @@ export interface DevToolRegistration {
 export interface DevToolbarContextValue {
   tools: Map<string, DevToolRegistration>;
   visible: boolean;
+  theme: DevToolbarTheme;
   setVisible: (visible: boolean) => void;
   activePanels: Set<string>;
   togglePanel: (id: string) => void;

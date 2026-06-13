@@ -4,6 +4,7 @@ import {
   useMemo,
   useState,
   type CSSProperties,
+  type JSX,
 } from 'react';
 import { useDevToolbarContext } from '../DevToolbarContext';
 import { DevToolFloating } from '../DevToolFloating';
@@ -28,17 +29,17 @@ interface GroupedEntry {
 }
 
 const colors = {
-  bg: '#020617',
-  bg2: '#0f172a',
-  bg3: '#1e293b',
-  border: '#334155',
-  text: '#f8fafc',
-  muted: '#94a3b8',
-  dim: '#64748b',
-  blue: '#93c5fd',
-  green: '#34d399',
-  amber: '#fbbf24',
-  red: '#f87171',
+  bg: 'var(--ndt-bg, #020617)',
+  bg2: 'var(--ndt-bg2, #0f172a)',
+  bg3: 'var(--ndt-bg3, #1e293b)',
+  border: 'var(--ndt-border, #334155)',
+  text: 'var(--ndt-text, #f8fafc)',
+  muted: 'var(--ndt-muted, #94a3b8)',
+  dim: 'var(--ndt-dim, #64748b)',
+  blue: 'var(--ndt-blue, #93c5fd)',
+  green: 'var(--ndt-green, #34d399)',
+  amber: 'var(--ndt-amber, #fbbf24)',
+  red: 'var(--ndt-red, #f87171)',
 };
 
 function groupEntries(entries: PerformanceEntryRecord[]): GroupedEntry[] {
@@ -133,7 +134,7 @@ export const PerformanceTool = memo((): null => {
     order: 30,
     alert: slowCount > 0,
     panel: (
-      <DevToolFloating title="Performance" onClose={() => closePanel('performance')} width={560}>
+      <DevToolFloating id="performance" title="Performance" onClose={() => closePanel('performance')} width={560}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${colors.border}`, padding: '6px 10px', fontSize: 11, color: colors.muted }}>
           <span>{entries.length} measurement{entries.length === 1 ? '' : 's'}</span>
           <span>{groups.length} group{groups.length === 1 ? '' : 's'}</span>

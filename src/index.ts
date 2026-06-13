@@ -3,6 +3,12 @@ export {
   useDevToolbarContext,
   type DevToolbarProviderProps,
 } from './DevToolbarContext';
+export {
+  defaultDevToolbarTheme,
+  resolveDevToolbarTheme,
+  type DevToolbarTheme,
+  type DevToolbarThemeInput,
+} from './theme';
 export { default as DevToolbarPill } from './DevToolbarPill';
 export { DevToolDropdown, type DevToolDropdownProps } from './DevToolDropdown';
 export { DevToolFloating, type DevToolFloatingProps } from './DevToolFloating';
@@ -37,8 +43,13 @@ export {
   addNetworkEntry,
   clearNetworkEntries,
   createMonitoredFetch,
+  exportNetworkCurl,
+  exportNetworkHar,
+  getNetworkEntries,
+  installMonitoredFetch,
   recordRequest,
   useNetworkEntries,
+  type MonitoredFetchInstallOptions,
   type NetworkEntry,
   type RecordRequestInput,
 } from './network/monitor';

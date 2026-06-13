@@ -3,6 +3,7 @@ import {
   useMemo,
   useState,
   type CSSProperties,
+  type JSX,
 } from 'react';
 import { DevToolFloating } from '../DevToolFloating';
 import { useDevToolbarContext } from '../DevToolbarContext';
@@ -21,13 +22,13 @@ export interface FeatureFlagsToolProps {
 }
 
 const colors = {
-  bg: '#020617',
-  bg2: '#0f172a',
-  border: '#334155',
-  text: '#f8fafc',
-  muted: '#94a3b8',
-  dim: '#64748b',
-  blue: '#93c5fd',
+  bg: 'var(--ndt-bg, #020617)',
+  bg2: 'var(--ndt-bg2, #0f172a)',
+  border: 'var(--ndt-border, #334155)',
+  text: 'var(--ndt-text, #f8fafc)',
+  muted: 'var(--ndt-muted, #94a3b8)',
+  dim: 'var(--ndt-dim, #64748b)',
+  blue: 'var(--ndt-blue, #93c5fd)',
 };
 
 const buttonStyle: CSSProperties = {
@@ -69,7 +70,7 @@ export const FeatureFlagsTool = memo(({
     order: 10,
     alert: isOverriding && changedCount > 0,
     panel: (
-      <DevToolFloating title="Feature Flags" onClose={() => closePanel('feature-flags')} width={420}>
+      <DevToolFloating id="feature-flags" title="Feature Flags" onClose={() => closePanel('feature-flags')} width={420}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: `1px solid ${colors.border}`, padding: 8 }}>
           {onOverrideEnabledChange && (
             <button type="button" style={buttonStyle} onClick={() => onOverrideEnabledChange(!isOverriding)}>

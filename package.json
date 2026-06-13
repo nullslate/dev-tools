@@ -1,36 +1,36 @@
 {
-  "name": "@thesandybridge/dev-tools",
+  "name": "@nullslate/dev-tools",
   "version": "0.1.0",
   "description": "Reusable React dev toolbar and network inspector.",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./network": {
       "types": "./dist/network/index.d.ts",
-      "import": "./dist/network/index.mjs",
-      "require": "./dist/network/index.js"
+      "import": "./dist/network/index.js",
+      "require": "./dist/network/index.cjs"
     },
     "./performance": {
       "types": "./dist/performance/index.d.ts",
-      "import": "./dist/performance/index.mjs",
-      "require": "./dist/performance/index.js"
+      "import": "./dist/performance/index.js",
+      "require": "./dist/performance/index.cjs"
     },
     "./errors": {
       "types": "./dist/errors/index.d.ts",
-      "import": "./dist/errors/index.mjs",
-      "require": "./dist/errors/index.js"
+      "import": "./dist/errors/index.js",
+      "require": "./dist/errors/index.cjs"
     },
     "./adapters": {
       "types": "./dist/adapters/index.d.ts",
-      "import": "./dist/adapters/index.mjs",
-      "require": "./dist/adapters/index.js"
+      "import": "./dist/adapters/index.js",
+      "require": "./dist/adapters/index.cjs"
     }
   },
   "files": [

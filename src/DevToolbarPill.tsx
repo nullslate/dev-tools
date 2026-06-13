@@ -5,13 +5,34 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type JSX,
   type ReactNode,
 } from 'react';
 import { useDevToolbarContext } from './DevToolbarContext';
 import { DevToolDropdown } from './DevToolDropdown';
+import type { DevToolbarTheme } from './theme';
 import type { DevToolRegistration } from './types';
 
-const COLLAPSED_KEY = 'sandybridge.devToolbar.collapsed';
+const COLLAPSED_KEY = 'nullslate.devToolbar.collapsed';
+
+function readCollapsedPreference(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    return window.localStorage.getItem(COLLAPSED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeCollapsedPreference(value: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(COLLAPSED_KEY, String(value));
+  } catch {
+    // Storage can be unavailable in private browsing or sandboxed embeds.
+  }
+}
 
 function sortTools(tools: DevToolRegistration[]): DevToolRegistration[] {
   return [...tools].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
@@ -21,7 +42,7 @@ function fallbackIcon(label: string): ReactNode {
   return <span style={{ fontSize: 10, fontWeight: 700 }}>{label.slice(0, 2).toUpperCase()}</span>;
 }
 
-function toolButtonStyle(tool: DevToolRegistration, isActive: boolean): CSSProperties {
+function toolButtonStyle(tool: DevToolRegistration, isActive: boolean, theme: DevToolbarTheme): CSSProperties {
   const base: CSSProperties = {
     display: 'flex',
     width: 32,
@@ -38,32 +59,33 @@ function toolButtonStyle(tool: DevToolRegistration, isActive: boolean): CSSPrope
   };
 
   if (tool.style) return { ...base, ...tool.style };
-  if (tool.alert) return { ...base, background: 'rgba(248,113,113,0.16)', color: '#f87171' };
-  if (isActive) return { ...base, background: 'rgba(96,165,250,0.16)', color: '#60a5fa' };
-  return { ...base, color: '#94a3b8' };
+  if (tool.alert) return { ...base, background: 'rgba(248,113,113,0.16)', color: theme.red };
+  if (isActive) return { ...base, background: 'rgba(96,165,250,0.16)', color: theme.blue };
+  return { ...base, color: theme.muted };
 }
 
 const DevToolbarPill = memo((): JSX.Element | null => {
   const {
     tools,
     visible,
+    theme,
     activePanels,
     togglePanel,
     closePanel,
     closeAllPanels,
   } = useDevToolbarContext();
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === 'true');
+  const [collapsed, setCollapsed] = useState(readCollapsedPreference);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const handleCollapse = useCallback((): void => {
     setCollapsed(true);
-    localStorage.setItem(COLLAPSED_KEY, 'true');
+    writeCollapsedPreference(true);
     closeAllPanels();
   }, [closeAllPanels]);
 
   const handleExpand = useCallback((): void => {
     setCollapsed(false);
-    localStorage.setItem(COLLAPSED_KEY, 'false');
+    writeCollapsedPreference(false);
   }, []);
 
   const handleToolClick = useCallback((tool: DevToolRegistration): void => {
@@ -102,9 +124,9 @@ const DevToolbarPill = memo((): JSX.Element | null => {
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: 999,
-          border: '1px solid #334155',
-          background: 'rgba(2,6,23,0.96)',
-          color: '#94a3b8',
+          border: `1px solid ${theme.border}`,
+          background: theme.bg,
+          color: theme.muted,
           boxShadow: '0 10px 24px rgba(0,0,0,0.35)',
           backdropFilter: 'blur(12px)',
         }}
@@ -135,7 +157,7 @@ const DevToolbarPill = memo((): JSX.Element | null => {
           else buttonRefs.current.delete(tool.id);
         }}
         type="button"
-        style={toolButtonStyle(tool, isActive)}
+        style={toolButtonStyle(tool, isActive, theme)}
         onClick={() => handleToolClick(tool)}
         aria-label={tool.label}
         title={tool.label}
@@ -152,7 +174,7 @@ const DevToolbarPill = memo((): JSX.Element | null => {
     .map((id) => tools.get(id))
     .filter((tool): tool is DevToolRegistration => tool?.panelType === 'floating' && !!tool.panel);
 
-  const separator = <div style={{ width: 1, height: 20, margin: '0 4px', background: '#334155' }} />;
+  const separator = <div style={{ width: 1, height: 20, margin: '0 4px', background: theme.border }} />;
 
   return (
     <>
@@ -168,8 +190,8 @@ const DevToolbarPill = memo((): JSX.Element | null => {
           alignItems: 'center',
           gap: 4,
           borderRadius: 999,
-          border: '1px solid #334155',
-          background: 'rgba(2,6,23,0.96)',
+          border: `1px solid ${theme.border}`,
+          background: theme.bg,
           padding: '0 4px',
           boxShadow: '0 10px 24px rgba(0,0,0,0.35)',
           backdropFilter: 'blur(12px)',
@@ -195,7 +217,7 @@ const DevToolbarPill = memo((): JSX.Element | null => {
             borderRadius: 6,
             border: 0,
             background: 'transparent',
-            color: '#64748b',
+            color: theme.dim,
             padding: 0,
           }}
           onClick={handleCollapse}

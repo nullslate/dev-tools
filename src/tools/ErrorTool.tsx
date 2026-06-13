@@ -1,4 +1,4 @@
-import { Fragment, memo, useState } from 'react';
+import { Fragment, memo, useState, type JSX } from 'react';
 import { DevToolFloating } from '../DevToolFloating';
 import { useDevToolbarContext } from '../DevToolbarContext';
 import { useDevTool } from '../useDevTool';
@@ -9,14 +9,14 @@ import {
 } from '../errors/monitor';
 
 const colors = {
-  bg: '#020617',
-  bg2: '#0f172a',
-  border: '#334155',
-  text: '#f8fafc',
-  muted: '#94a3b8',
-  dim: '#64748b',
-  red: '#f87171',
-  blue: '#93c5fd',
+  bg: 'var(--ndt-bg, #020617)',
+  bg2: 'var(--ndt-bg2, #0f172a)',
+  border: 'var(--ndt-border, #334155)',
+  text: 'var(--ndt-text, #f8fafc)',
+  muted: 'var(--ndt-muted, #94a3b8)',
+  dim: 'var(--ndt-dim, #64748b)',
+  red: 'var(--ndt-red, #f87171)',
+  blue: 'var(--ndt-blue, #93c5fd)',
 };
 
 const ErrorDetails = ({ error }: { error: CapturedDevError }): JSX.Element => (
@@ -52,7 +52,7 @@ export const ErrorTool = memo((): null => {
     order: 40,
     alert: errors.length > 0,
     panel: (
-      <DevToolFloating title="Errors" onClose={() => closePanel('errors')} width={520}>
+      <DevToolFloating id="errors" title="Errors" onClose={() => closePanel('errors')} width={520}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${colors.border}`, padding: '6px 10px', color: colors.muted, fontSize: 11 }}>
           <span>{errors.length} captured error{errors.length === 1 ? '' : 's'}</span>
           {errors.length > 0 && (

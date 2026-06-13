@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   useSyncExternalStore,
+  type JSX,
   type ReactNode,
 } from 'react';
 

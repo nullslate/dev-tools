@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode, RefObject } from 'react';
+import type { CSSProperties, JSX, ReactNode, RefObject } from 'react';
+import { useDevToolbarContext } from './DevToolbarContext';
 
 export interface DevToolDropdownProps {
   anchorRef: RefObject<HTMLElement | null>;
@@ -11,6 +12,7 @@ export const DevToolDropdown = ({
   children,
   onClose,
 }: DevToolDropdownProps): JSX.Element => {
+  const { theme } = useDevToolbarContext();
   const rect = anchorRef.current?.getBoundingClientRect();
 
   const containerStyle: CSSProperties = {
@@ -19,10 +21,10 @@ export const DevToolDropdown = ({
     minWidth: 256,
     overflow: 'hidden',
     borderRadius: 8,
-    border: '1px solid #334155',
-    background: '#020617',
-    color: '#f8fafc',
-    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.55)',
+    border: `1px solid ${theme.border}`,
+    background: theme.bg,
+    color: theme.text,
+    boxShadow: theme.shadow,
     top: rect ? rect.bottom + 8 : 48,
     left: rect ? rect.left : 16,
   };
@@ -39,7 +41,7 @@ export const DevToolDropdown = ({
           border: 0,
           background: 'transparent',
           fontSize: 12,
-          color: '#94a3b8',
+          color: theme.muted,
         }}
         onClick={onClose}
         aria-label="Close dev tool dropdown"

@@ -4,24 +4,32 @@ import {
   useContext,
   useMemo,
   useState,
+  type JSX,
   type ReactNode,
 } from 'react';
 import type { DevToolRegistration, DevToolbarContextValue } from './types';
+import {
+  resolveDevToolbarTheme,
+  type DevToolbarThemeInput,
+} from './theme';
 
 const DevToolbarContext = createContext<DevToolbarContextValue | null>(null);
 
 export interface DevToolbarProviderProps {
   children: ReactNode;
   defaultVisible?: boolean;
+  theme?: DevToolbarThemeInput;
 }
 
 export const DevToolbarProvider = ({
   children,
   defaultVisible = true,
+  theme: themeInput,
 }: DevToolbarProviderProps): JSX.Element => {
   const [tools, setTools] = useState<Map<string, DevToolRegistration>>(new Map());
   const [visible, setVisible] = useState(defaultVisible);
   const [activePanels, setActivePanels] = useState<Set<string>>(new Set());
+  const theme = useMemo(() => resolveDevToolbarTheme(themeInput), [themeInput]);
 
   const registerTool = useCallback((tool: DevToolRegistration): void => {
     setTools((prev) => {
@@ -70,6 +78,7 @@ export const DevToolbarProvider = ({
   const value = useMemo<DevToolbarContextValue>(() => ({
     tools,
     visible,
+    theme,
     setVisible,
     activePanels,
     togglePanel,
@@ -80,6 +89,7 @@ export const DevToolbarProvider = ({
   }), [
     tools,
     visible,
+    theme,
     activePanels,
     togglePanel,
     closePanel,

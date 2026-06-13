@@ -4,6 +4,7 @@ import {
   useMemo,
   useState,
   type CSSProperties,
+  type JSX,
   type ReactNode,
 } from 'react';
 import { DevToolFloating } from '../DevToolFloating';

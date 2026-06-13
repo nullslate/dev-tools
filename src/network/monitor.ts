@@ -34,9 +34,15 @@ export interface RecordRequestInput {
   requestHeaders?: HeadersInit | null;
 }
 
+export interface MonitoredFetchInstallOptions {
+  target?: Pick<typeof globalThis, 'fetch'>;
+}
+
 let nextId = 0;
 let entries: NetworkEntry[] = [];
 const listeners = new Set<() => void>();
+let installedTarget: Pick<typeof globalThis, 'fetch'> | null = null;
+let originalFetch: typeof fetch | null = null;
 
 function emit(): void {
   listeners.forEach((listener) => listener());
@@ -48,6 +54,10 @@ function subscribe(listener: () => void): () => void {
 }
 
 function getSnapshot(): NetworkEntry[] {
+  return entries;
+}
+
+export function getNetworkEntries(): NetworkEntry[] {
   return entries;
 }
 
@@ -209,4 +219,96 @@ export function createMonitoredFetch(fetchImpl: typeof fetch = fetch): typeof fe
       throw error;
     }
   };
+}
+
+export function installMonitoredFetch(options: MonitoredFetchInstallOptions = {}): () => void {
+  const target = options.target ?? (typeof window === 'undefined' ? undefined : window);
+  if (!target) return () => undefined;
+
+  if (installedTarget === target && originalFetch) {
+    return () => {
+      if (installedTarget === target && originalFetch) {
+        target.fetch = originalFetch;
+        installedTarget = null;
+        originalFetch = null;
+      }
+    };
+  }
+
+  const previousFetch = target.fetch.bind(target);
+  originalFetch = target.fetch;
+  target.fetch = createMonitoredFetch(previousFetch);
+  installedTarget = target;
+
+  return () => {
+    if (installedTarget !== target) return;
+    target.fetch = originalFetch ?? target.fetch;
+    installedTarget = null;
+    originalFetch = null;
+  };
+}
+
+export function exportNetworkCurl(entriesToExport: NetworkEntry[] = entries): string {
+  return entriesToExport.map((entry) => {
+    const lines = [`curl '${entry.fullUrl.replaceAll("'", "'\\''")}'`];
+    if (entry.method !== 'GET') lines.push(`  -X ${entry.method}`);
+    Object.entries(entry.requestHeaders ?? {}).forEach(([key, value]) => {
+      lines.push(`  -H '${`${key}: ${value}`.replaceAll("'", "'\\''")}'`);
+    });
+    if (entry.requestBody) lines.push(`  --data-raw '${entry.requestBody.replaceAll("'", "'\\''")}'`);
+    return lines.join(' \\\n');
+  }).join('\n\n');
+}
+
+export function exportNetworkHar(entriesToExport: NetworkEntry[] = entries): string {
+  const har = {
+    log: {
+      version: '1.2',
+      creator: {
+        name: 'Nullslate Dev Tools',
+        version: '0.1.0',
+      },
+      entries: entriesToExport.map((entry) => ({
+        startedDateTime: entry.timestamp,
+        time: entry.duration,
+        request: {
+          method: entry.method,
+          url: entry.fullUrl,
+          httpVersion: 'HTTP/1.1',
+          headers: Object.entries(entry.requestHeaders ?? {}).map(([name, value]) => ({ name, value })),
+          queryString: Object.entries(entry.queryParams ?? {}).flatMap(([name, values]) => values.map((value) => ({ name, value }))),
+          cookies: [],
+          headersSize: -1,
+          bodySize: entry.requestBody?.length ?? 0,
+          postData: entry.requestBody ? {
+            mimeType: entry.requestHeaders?.['content-type'] ?? entry.requestHeaders?.['Content-Type'] ?? 'text/plain',
+            text: entry.requestBody,
+          } : undefined,
+        },
+        response: {
+          status: entry.status ?? 0,
+          statusText: entry.error ?? '',
+          httpVersion: 'HTTP/1.1',
+          headers: entry.responseContentType ? [{ name: 'content-type', value: entry.responseContentType }] : [],
+          cookies: [],
+          content: {
+            size: entry.responseSize ?? entry.responseBody?.length ?? 0,
+            mimeType: entry.responseContentType ?? 'text/plain',
+            text: entry.responseBody ?? '',
+          },
+          redirectURL: '',
+          headersSize: -1,
+          bodySize: entry.responseSize ?? entry.responseBody?.length ?? -1,
+        },
+        cache: {},
+        timings: {
+          send: 0,
+          wait: entry.duration,
+          receive: 0,
+        },
+      })),
+    },
+  };
+
+  return JSON.stringify(har, null, 2);
 }
