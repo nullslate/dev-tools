@@ -14,6 +14,7 @@ export { DevToolDropdown, type DevToolDropdownProps } from './DevToolDropdown';
 export { DevToolFloating, type DevToolFloatingProps } from './DevToolFloating';
 export { useDevTool } from './useDevTool';
 export { ErrorTool } from './tools/ErrorTool';
+export { ThemeSettingsTool } from './tools/ThemeSettingsTool';
 export {
   FeatureFlagsTool,
   type FeatureFlagsToolProps,

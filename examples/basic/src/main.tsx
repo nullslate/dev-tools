@@ -50,16 +50,7 @@ function ExampleApp(): JSX.Element {
   };
 
   return (
-    <DevToolbarProvider
-      theme={{
-        bg: '#111827',
-        bg2: '#172033',
-        bg3: '#243044',
-        border: '#3b485f',
-        blue: '#67e8f9',
-        green: '#86efac',
-      }}
-    >
+    <DevToolbarProvider>
       <FeatureFlagsTool
         flags={flags}
         overriddenFlags={flags}

@@ -9,9 +9,13 @@ import {
 } from 'react';
 import type { DevToolRegistration, DevToolbarContextValue } from './types';
 import {
+  clearStoredDevToolbarTheme,
+  readStoredDevToolbarTheme,
   resolveDevToolbarTheme,
+  writeStoredDevToolbarTheme,
   type DevToolbarThemeInput,
 } from './theme';
+import { ThemeSettingsTool } from './tools/ThemeSettingsTool';
 
 const DevToolbarContext = createContext<DevToolbarContextValue | null>(null);
 
@@ -29,7 +33,24 @@ export const DevToolbarProvider = ({
   const [tools, setTools] = useState<Map<string, DevToolRegistration>>(new Map());
   const [visible, setVisible] = useState(defaultVisible);
   const [activePanels, setActivePanels] = useState<Set<string>>(new Set());
-  const theme = useMemo(() => resolveDevToolbarTheme(themeInput), [themeInput]);
+  const [themeOverrides, setThemeOverrides] = useState<DevToolbarThemeInput>(readStoredDevToolbarTheme);
+  const theme = useMemo(() => resolveDevToolbarTheme({
+    ...themeInput,
+    ...themeOverrides,
+  }), [themeInput, themeOverrides]);
+
+  const setTheme = useCallback((nextTheme: DevToolbarThemeInput): void => {
+    setThemeOverrides((current) => {
+      const next = { ...current, ...nextTheme };
+      writeStoredDevToolbarTheme(next);
+      return next;
+    });
+  }, []);
+
+  const resetTheme = useCallback((): void => {
+    clearStoredDevToolbarTheme();
+    setThemeOverrides({});
+  }, []);
 
   const registerTool = useCallback((tool: DevToolRegistration): void => {
     setTools((prev) => {
@@ -79,7 +100,10 @@ export const DevToolbarProvider = ({
     tools,
     visible,
     theme,
+    themeOverrides,
     setVisible,
+    setTheme,
+    resetTheme,
     activePanels,
     togglePanel,
     closePanel,
@@ -90,6 +114,9 @@ export const DevToolbarProvider = ({
     tools,
     visible,
     theme,
+    themeOverrides,
+    setTheme,
+    resetTheme,
     activePanels,
     togglePanel,
     closePanel,
@@ -100,6 +127,7 @@ export const DevToolbarProvider = ({
 
   return (
     <DevToolbarContext.Provider value={value}>
+      <ThemeSettingsTool />
       {children}
     </DevToolbarContext.Provider>
   );

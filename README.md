@@ -23,13 +23,7 @@ export function App() {
   useEffect(() => installMonitoredFetch(), []);
 
   return (
-    <DevToolbarProvider
-      theme={{
-        bg: '#111827',
-        border: '#3b485f',
-        blue: '#67e8f9',
-      }}
-    >
+    <DevToolbarProvider>
       <NetworkTool />
       <YourApp />
       <DevToolbarPill />
@@ -47,7 +41,7 @@ manually from an existing HTTP client.
 - Draggable, resizable floating panels with saved positions.
 - Network inspector with filtering, search, response/request payload previews, cURL copy/export, and HAR export.
 - Feature flag, performance, error, toggle, and tree adapter tools.
-- Theme tokens via `DevToolbarProvider`.
+- AMOLED black theme by default, with a built-in settings panel for live color changes saved to localStorage.
 
 ## Example
 

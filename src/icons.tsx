@@ -12,6 +12,7 @@ export type DevToolIconName =
   | 'gauge'
   | 'network'
   | 'panel'
+  | 'settings'
   | 'spark'
   | 'toggle-off'
   | 'toggle-on'
@@ -124,6 +125,12 @@ const paths: Record<DevToolIconName, JSX.Element> = {
       <path d="M7 9h.01" />
       <path d="M11 9h6" />
       <path d="M7 13h10" />
+    </>
+  ),
+  settings: (
+    <>
+      <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />
+      <path d="m19 12.8.1-.8-.1-.8 2-1.5-2-3.4-2.4 1a7.8 7.8 0 0 0-1.4-.8L15 4h-6l-.2 2.5c-.5.2-1 .5-1.4.8l-2.4-1-2 3.4 2 1.5-.1.8.1.8-2 1.5 2 3.4 2.4-1c.4.3.9.6 1.4.8L9 20h6l.2-2.5c.5-.2 1-.5 1.4-.8l2.4 1 2-3.4Z" />
     </>
   ),
   spark: (
